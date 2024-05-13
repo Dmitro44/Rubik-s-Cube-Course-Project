@@ -9,29 +9,44 @@
 class CubeGeometry : protected QOpenGLFunctions
 {
 public:
+    CubeGeometry();
     CubeGeometry(float size, QVector<QVector3D> color, QVector3D position);
     virtual ~CubeGeometry();
 
     void initShader();
     void prepareModel();
-    void drawCubeGeometry(QMatrix4x4 &projection, QMatrix4x4 &view, QMatrix4x4 &model);
+    void drawCubeGeometry(QMatrix4x4 &projection, QMatrix4x4 &view);
     void SetPosition(QVector3D position);
     QVector3D GetPosition();
 
-    bool intersects(const QVector3D& rayStart, const QVector3D& rayEnd);
-    void Rotate(QQuaternion rotation, int face);
+    void SetModel(QMatrix4x4 model);
+    QMatrix4x4 GetModel();
+
+    void rotateCube(QQuaternion &rotation);
+
+    void SetRotation(QQuaternion rotation);
+    QQuaternion GetRotation();
+
+    void SetTargetRotation(QQuaternion targetRotation);
+    QQuaternion GetTargetRotation();
+
 
 private:
-    void initCubeGeometry(float size, QVector<QVector3D> color, QVector3D position);
+    void initCubeGeometry();
 
     QOpenGLShaderProgram *program;
     QOpenGLBuffer *vertBuff;
     QOpenGLBuffer *indBuff;
     QOpenGLVertexArrayObject *vao;
 
+    float size;
+    QVector<QVector3D> color;
+
     QVector3D position;
-    QVector3D minBound;
-    QVector3D maxBound;
+    QMatrix4x4 model;
+
+    QQuaternion rotation;
+    QQuaternion targetRotation;
 
     QVector<QVector3D> vertices;
     QVector<GLushort> indices;

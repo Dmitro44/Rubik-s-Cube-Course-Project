@@ -2,12 +2,19 @@
 
 #include <QDebug>
 
+CubeGeometry::CubeGeometry()
+{}
+
 CubeGeometry::CubeGeometry(float size, QVector<QVector3D> color, QVector3D position)
 {
     initializeOpenGLFunctions();
 
     // Initializes cube geometry and transfers it to VBOs
-    initCubeGeometry(size, color, position);
+    this->size = size;
+    this->color = color;
+    this->position = position;
+
+    initCubeGeometry();
     initShader();
 
     prepareModel();
@@ -65,7 +72,7 @@ void CubeGeometry::prepareModel()
     qDebug() << "Model prepared";
 }
 
-void CubeGeometry::initCubeGeometry(float size, QVector<QVector3D> color, QVector3D position)
+void CubeGeometry::initCubeGeometry()
 {
     vertices = {
         // positions          // colors
@@ -109,14 +116,9 @@ void CubeGeometry::initCubeGeometry(float size, QVector<QVector3D> color, QVecto
         16, 17, 18, 18, 19, 16, // left
         20, 21, 22, 22, 23, 20 // back
     };
-
-    this->position = position;
-
-    minBound = position - QVector3D(size / 2.0f, size / 2.0f, size / 2.0f);
-    maxBound = position + QVector3D(size / 2.0f, size / 2.0f, size / 2.0f);
 }
 
-void CubeGeometry::drawCubeGeometry(QMatrix4x4 &projection, QMatrix4x4 &view, QMatrix4x4 &model)
+void CubeGeometry::drawCubeGeometry(QMatrix4x4 &projection, QMatrix4x4 &view)
 {
     program->bind();
     program->setUniformValue("mvp_matrix", projection * view * model);
@@ -139,44 +141,51 @@ QVector3D CubeGeometry::GetPosition()
     return position;
 }
 
-bool CubeGeometry::intersects(const QVector3D &rayStart, const QVector3D &rayEnd)
+void CubeGeometry::SetModel(QMatrix4x4 model)
 {
-    QVector3D dir = (rayEnd - rayStart).normalized();
-    float tNear = -INFINITY;
-    float tFar = INFINITY;
-
-    for (int i = 0; i < 3; i++) {
-        if (dir[i] == 0.0f) {
-            if (rayStart[i] < minBound[i] || rayStart[i] > maxBound[i]) {
-                return false;
-            }
-        } else {
-            float t1 = (minBound[i] - rayStart[i]) / dir[i];
-            float t2 = (maxBound[i] - rayStart[i]) / dir[i];
-
-            if (t1 > t2) std::swap(t1, t2);
-
-            if (t1 > tNear) tNear = t1;
-            if (t2 < tFar) tFar = t2;
-
-            if (tNear > tFar || tFar < 0) {
-                return false;
-            }
-        }
-    }
-
-    return true;
+    this->model = model;
 }
 
-void CubeGeometry::Rotate(QQuaternion rotation, int face)
+QMatrix4x4 CubeGeometry::GetModel()
 {
-    QMatrix4x4 rotMatrix = QMatrix4x4(rotation.toRotationMatrix());
-    QVector3D center = (vertices[face * 4] + vertices[face * 4 + 2]) / 2;
-    for (int i = 0; i < 4; i++)
-    {
-        vertices[face * 4 + i] = rotMatrix * (vertices[face * 4 + i] - center) + center;
-    }
-    vertBuff->bind();
-    vertBuff->write(0, &vertices[0], (int)(vertices.size() * sizeof(QVector3D)));
-    vertBuff->release();
+    return model;
 }
+
+void CubeGeometry::rotateCube(QQuaternion &rotation)
+{
+    this->targetRotation = rotation.normalized() * this->targetRotation;
+}
+
+void CubeGeometry::SetRotation(QQuaternion rotation)
+{
+    this->rotation = rotation;
+}
+
+QQuaternion CubeGeometry::GetRotation()
+{
+    return rotation;
+}
+
+void CubeGeometry::SetTargetRotation(QQuaternion targetRotation)
+{
+    this->targetRotation = targetRotation;
+}
+
+QQuaternion CubeGeometry::GetTargetRotation()
+{
+    return targetRotation;
+}
+
+// TODO: Rewrite this method
+// void CubeGeometry::Rotate(QQuaternion rotation, int face)
+// {
+//     QMatrix4x4 rotMatrix = QMatrix4x4(rotation.toRotationMatrix());
+//     QVector3D center = (vertices[face * 4] + vertices[face * 4 + 2]) / 2;
+//     for (int i = 0; i < 4; i++)
+//     {
+//         vertices[face * 4 + i] = rotMatrix * (vertices[face * 4 + i] - center) + center;
+//     }
+//     vertBuff->bind();
+//     vertBuff->write(0, &vertices[0], (int)(vertices.size() * sizeof(QVector3D)));
+//     vertBuff->release();
+// }
