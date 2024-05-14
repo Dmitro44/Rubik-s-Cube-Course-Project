@@ -23,6 +23,10 @@ OpenGLWidget::OpenGLWidget(QWidget *parent)
         }
     }
 
+    rotationFrontBackSideAxis = QVector3D(0.0f, 0.0f, 1.0f);
+    rotationUpDownSideAxis = QVector3D(0.0f, 1.0f, 0.0f);
+    rotationLeftRightSideAxis = QVector3D(1.0f, 0.0f, 0.0f);
+
     setupCamera();
 }
 
@@ -106,8 +110,8 @@ void OpenGLWidget::updateCubesAfterRotation(vec3Cube &cubes, char side, bool clo
     case 'D': rotateFace(cubes, side, 0, clockwise, false, true); break;
     case 'L': rotateFace(cubes, side, 0, clockwise, true, false); break;
     case 'R': rotateFace(cubes, side, 2, clockwise, true, false); break;
-    case 'F': rotateFace(cubes, side, 0, clockwise, false, false); break;
-    case 'B': rotateFace(cubes, side, 2, clockwise, false, false); break;
+    case 'F': rotateFace(cubes, side, 2, clockwise, false, false); break;
+    case 'B': rotateFace(cubes, side, 0, clockwise, false, false); break;
     }
 }
 
@@ -154,7 +158,7 @@ void OpenGLWidget::rotateFace(vec3Cube &cubes, char side, int layer, bool clockw
                     if (side == 'F') {
                         cubes[i][j][layer] = tempCubes[j][2-i][layer];
                     } else {
-                        cubes[i][j][layer] = tempCubes[j][2-i][layer];
+                        cubes[i][j][layer] = tempCubes[2-j][i][layer];
                     }
                 }
             }
@@ -172,8 +176,8 @@ QVector<CubeGeometry *> OpenGLWidget::getCubesOnSide(char side)
             case 'D': cubesOnSide.push_back(&cubes[i][0][j]); break;
             case 'L': cubesOnSide.push_back(&cubes[0][i][j]); break;
             case 'R': cubesOnSide.push_back(&cubes[2][i][j]); break;
-            case 'F': cubesOnSide.push_back(&cubes[i][j][0]); break;
-            case 'B': cubesOnSide.push_back(&cubes[i][j][2]); break;
+            case 'F': cubesOnSide.push_back(&cubes[i][j][2]); break;
+            case 'B': cubesOnSide.push_back(&cubes[i][j][0]); break;
             default: break;
             }
         }
@@ -262,9 +266,18 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
         // If the mouse has moved a certain distance, rotate the cube by 90 degrees
         if (totalMovement > 1.0f) {
             float angle;
+            QVector3D rotationAxis;
+            bool clockwise;
+
             if (abs(xoffset) > abs(yoffset)) {
                 rotationAxis = QVector3D(0.0f, 1.0f, 0.0f);
-                angle = xoffset > 0 ? -90.0f : 90.0f;
+                if (xoffset > 0) {
+                    angle = -90.0f;
+                    clockwise = true;
+                } else {
+                    angle = 90.0f;
+                    clockwise = false;
+                }
             } else {
                 if (event->x() < width() / 2)
                 {
@@ -273,12 +286,22 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
                     rotationAxis = QVector3D(0.0f, 0.0f, 1.0f);
                     yoffset = -yoffset;
                 }
-                angle = yoffset > 0 ? -90.0f : 90.0f;
+                // angle = yoffset > 0 ? -90.0f : 90.0f;
+                if (yoffset > 0) {
+                    angle = -90.0f;
+                    clockwise = true;
+                } else {
+                    angle = 90.0f;
+                    clockwise = false;
+                }
             }
+            updateRotationSideAxises(rotationAxis, clockwise);
+            rotateAllCubes(cubes, rotationAxis, clockwise);
 
             QQuaternion rotation = QQuaternion::fromAxisAndAngle(rotationAxis, angle);
 
             targetOrientation = rotation.normalized() * targetOrientation;
+
 
 
             rightButtonPressed = false;
@@ -286,6 +309,73 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
+void OpenGLWidget::rotateAllCubes(vec3Cube &cubes, QVector3D rotationAxis, bool clockwise)
+{
+    vec3Cube tempCubes = cubes;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                if (rotationAxis.x() != 0.0f) {
+                    if (clockwise) {
+                        cubes[i][j][k] = tempCubes[i][2-k][j];
+                    } else {
+                        cubes[i][j][k] = tempCubes[i][k][2-j];
+                    }
+                } else if (rotationAxis.y() != 0.0f) {
+                    if (clockwise) {
+                        cubes[i][j][k] = tempCubes[k][j][2-i];
+                    } else {
+                        cubes[i][j][k] = tempCubes[2-k][j][i];
+                    }
+                } else {
+                    if (clockwise) {
+                        cubes[i][j][k] = tempCubes[2-j][i][k];
+                    } else {
+                        cubes[i][j][k] = tempCubes[j][2-i][k];
+                    }
+                }
+            }
+        }
+    }
+}
+
+void OpenGLWidget::updateRotationSideAxises(QVector3D rotationAroundAxis, bool clockwise)
+{
+    QVector3D tempRotationAxis;
+    if (rotationAroundAxis.x() != 0.0f) {
+        tempRotationAxis = rotationUpDownSideAxis;
+        rotationUpDownSideAxis = rotationFrontBackSideAxis;
+        rotationFrontBackSideAxis = tempRotationAxis;
+
+        if (!clockwise) {
+            rotationUpDownSideAxis = -rotationUpDownSideAxis;
+        } else {
+            rotationFrontBackSideAxis = -rotationFrontBackSideAxis;
+        }
+
+    } else if (rotationAroundAxis.y() != 0.0f) {
+        tempRotationAxis = rotationFrontBackSideAxis;
+        rotationFrontBackSideAxis = rotationLeftRightSideAxis;
+        rotationLeftRightSideAxis = tempRotationAxis;
+
+        if (!clockwise) {
+            rotationFrontBackSideAxis = -rotationFrontBackSideAxis;
+        } else {
+            rotationLeftRightSideAxis = -rotationLeftRightSideAxis;
+        }
+
+    } else {
+        tempRotationAxis = rotationUpDownSideAxis;
+        rotationUpDownSideAxis = rotationLeftRightSideAxis;
+        rotationLeftRightSideAxis = tempRotationAxis;
+
+        if (!clockwise) {
+            rotationLeftRightSideAxis = -rotationLeftRightSideAxis;
+        } else {
+            rotationUpDownSideAxis = -rotationUpDownSideAxis;
+        }
+    }
+}
 
 
 void OpenGLWidget::keyPressEvent(QKeyEvent *event)
@@ -297,10 +387,10 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
     switch (event->key()) {
         case Qt::Key_W:
             if (event->modifiers() & Qt::ShiftModifier) {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 1.0f, 0.0f), 90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, rotationUpDownAngle);
                 clockwise = false;
             } else {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 1.0f, 0.0f), -90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, -rotationUpDownAngle);
                 clockwise = true;
             }
 
@@ -312,10 +402,10 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
             break;
         case Qt::Key_S:
             if (event->modifiers() & Qt::ShiftModifier) {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 1.0f, 0.0f), -90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, -rotationUpDownAngle);
                 clockwise = false;
             } else {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 1.0f, 0.0f), 90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, rotationUpDownAngle);
                 clockwise = true;
             }
 
@@ -327,10 +417,10 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
             break;
         case Qt::Key_A:
             if (event->modifiers() & Qt::ShiftModifier) {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(1.0f, 0.0f, 0.0f), -90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, -rotationLeftRightAngle);
                 clockwise = false;
             } else {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(1.0f, 0.0f, 0.0f), 90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, rotationLeftRightAngle);
                 clockwise = true;
             }
 
@@ -342,10 +432,10 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
             break;
         case Qt::Key_D:
             if (event->modifiers() & Qt::ShiftModifier) {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(1.0f, 0.0f, 0.0f), 90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, rotationLeftRightAngle);
                 clockwise = false;
             } else {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(1.0f, 0.0f, 0.0f), -90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, -rotationLeftRightAngle);
                 clockwise = true;
             }
 
@@ -357,10 +447,10 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
             break;
         case Qt::Key_E:
             if (event->modifiers() & Qt::ShiftModifier) {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 0.0f, 1.0f), 90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, rotationFrontBackAngle);
                 clockwise = false;
             } else {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 0.0f, 1.0f), -90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, -rotationFrontBackAngle);
                 clockwise = true;
             }
 
@@ -372,10 +462,10 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
             break;
         case Qt::Key_Q:
             if (event->modifiers() & Qt::ShiftModifier) {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 0.0f, 1.0f), -90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, -rotationFrontBackAngle);
                 clockwise = false;
             } else {
-                rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0f, 0.0f, 1.0f), 90.0f);
+                rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, rotationFrontBackAngle);
                 clockwise = true;
             }
 

@@ -40,6 +40,10 @@ protected:
     QVector3D getRayWorld(const QPoint& screenPos);
     void setElementsOfCube(vec3Cube &cubes, QVector<QVector3D> &colors);
 
+    void rotateAllCubes(vec3Cube &cubes, QVector3D rotationAxis, bool clockwise);
+
+    void updateRotationSideAxises(QVector3D rotationAroundAxis, bool clockwise);
+
 private:
     vec3Cube cubes;
     QVector<QVector3D> colors;
@@ -60,10 +64,14 @@ private:
     QPoint lastMousePos;
     bool rightButtonPressed = false;
     bool leftButtonPressed = false;
-    bool swipeStarted = false;
-    QPoint swipeStartPos;
-    QPoint swipeEndPos;
-    QVector3D rotationAxis;
+    QVector3D rotationUpDownSideAxis;
+    QVector3D rotationLeftRightSideAxis;
+    QVector3D rotationFrontBackSideAxis;
+    float rotationUpDownAngle = 90.0f;
+    float rotationLeftRightAngle = 90.0f;
+    float rotationFrontBackAngle = 90.0f;
+    int countSideRotations = 0;
+
     QQuaternion targetOrientation;
     QQuaternion currentOrientation;
     QQuaternion targetRotation;
