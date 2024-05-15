@@ -12,12 +12,14 @@ SOURCES += \
     cubegeometry.cpp \
     main.cpp \
     mainwindow.cpp \
-    openglwidget.cpp
+    openglwidget.cpp \
+    rubikscube.cpp
 
 HEADERS += \
     cubegeometry.h \
     mainwindow.h \
-    openglwidget.h
+    openglwidget.h \
+    rubikscube.h
 
 FORMS += \
     mainwindow.ui
@@ -32,3 +34,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     fragmentShader.frag \
     vertexShader.vert
+
+RESOURCES += \
+    shaders.qrc

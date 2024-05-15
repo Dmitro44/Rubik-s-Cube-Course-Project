@@ -29,8 +29,8 @@ CubeGeometry::~CubeGeometry()
 void CubeGeometry::initShader()
 {
     program = new QOpenGLShaderProgram();
-    program->addShaderFromSourceFile(QOpenGLShader::Vertex, "C:/Users/Dima/Documents/RubiksCube/vertexShader.vert");
-    program->addShaderFromSourceFile(QOpenGLShader::Fragment, "C:/Users/Dima/Documents/RubiksCube/fragmentShader.frag");
+    program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/Shaders/vertexShader.vert");
+    program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/Shaders/fragmentShader.frag");
     program->link();
     if (program->isLinked())
     {

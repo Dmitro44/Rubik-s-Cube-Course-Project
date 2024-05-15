@@ -11,15 +11,16 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 
-#include "cubegeometry.h"
+#include "rubikscube.h"
 
 #define vec3Cube QVector<QVector<QVector<CubeGeometry>>> // 3x3x3 cube
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
+
 public:
     explicit OpenGLWidget(QWidget *parent = nullptr);
-
+    ~OpenGLWidget() override;
 protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;
@@ -32,21 +33,10 @@ protected:
 
     void setupCamera();
 
-    void updateCubesAfterRotation(vec3Cube &cubes, char side, bool clockwise);
-    void rotateFace(vec3Cube &cubes, char side, int layer, bool clockwise, bool rotateX, bool rotateY);
-
-    QVector<CubeGeometry*> getCubesOnSide(char side);
-
-    QVector3D getRayWorld(const QPoint& screenPos);
-    void setElementsOfCube(vec3Cube &cubes, QVector<QVector3D> &colors);
-
-    void rotateAllCubes(vec3Cube &cubes, QVector3D rotationAxis, bool clockwise);
-
     void updateRotationSideAxises(QVector3D rotationAroundAxis, bool clockwise);
 
 private:
-    vec3Cube cubes;
-    QVector<QVector3D> colors;
+    RubiksCube *rubiksCube;
 
     QVector3D cameraPos;
     QVector3D cameraFront;
@@ -64,13 +54,10 @@ private:
     QPoint lastMousePos;
     bool rightButtonPressed = false;
     bool leftButtonPressed = false;
+
     QVector3D rotationUpDownSideAxis;
     QVector3D rotationLeftRightSideAxis;
     QVector3D rotationFrontBackSideAxis;
-    float rotationUpDownAngle = 90.0f;
-    float rotationLeftRightAngle = 90.0f;
-    float rotationFrontBackAngle = 90.0f;
-    int countSideRotations = 0;
 
     QQuaternion targetOrientation;
     QQuaternion currentOrientation;
