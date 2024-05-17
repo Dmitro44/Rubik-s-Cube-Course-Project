@@ -10,6 +10,7 @@
 #include <QQuaternion>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QObject>
 
 #include "rubikscube.h"
 
@@ -17,17 +18,28 @@
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
-
+    Q_OBJECT
 public:
     explicit OpenGLWidget(QWidget *parent = nullptr);
     ~OpenGLWidget() override;
+
+    RubiksCube *getRubiksCube() { return rubiksCube; }
+
+    void setFirstMoveFlag(bool flag) { firstMoveFlag = flag; }
+
+public slots:
+    void updateScramble();
+
 protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
+    void focusOutEvent(QFocusEvent *event) override {
+        QOpenGLWidget::focusOutEvent(event);
+        setFocus();
+    }
     void mousePressEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
 
@@ -35,8 +47,13 @@ protected:
 
     void updateRotationSideAxises(QVector3D rotationAroundAxis, bool clockwise);
 
+signals:
+    void firstMove();
+
 private:
     RubiksCube *rubiksCube;
+
+    bool firstMoveFlag = false;
 
     QVector3D cameraPos;
     QVector3D cameraFront;

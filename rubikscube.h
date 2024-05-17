@@ -23,11 +23,35 @@ public:
 
     void rotateFace(vec3Cube &cubes, char side, int layer, bool clockwise, bool rotateX, bool rotateY);
 
+    void rotateSide(QQuaternion rotation, char side, bool clockwise);
+
+    void scramble();
+
+    QString getScramble();
+
+    void addToSolution(QString move);
+
+    QString getSolution();
+
+    void checkForSolved();
+
     vec3Cube &getCubes() { return cubes; }
+
+    void changeRotationAxis(QVector3D axis, int index);
+
+signals:
+    void cubeSolved();
 
 private:
     vec3Cube cubes;
     QVector<QVector3D> colors;
+
+    QVector<QVector3D> rotationAxises;
+
+    QString scrambleString;
+    QString solutionString;
+
+    vec3Cube solvedCubes;
 };
 
 #endif // RUBIKSCUBE_H

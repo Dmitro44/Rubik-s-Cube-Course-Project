@@ -3,4 +3,11 @@
         <file>fragmentShader.frag</file>
         <file>vertexShader.vert</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file>Cube_icon.ico</file>
+    </qresource>
+    <qresource prefix="/pictures">
+        <file>party-popper.png</file>
+        <file>reversedparty-popper.png</file>
+    </qresource>
 </RCC>

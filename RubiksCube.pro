@@ -10,19 +10,25 @@ CONFIG += c++17
 
 SOURCES += \
     cubegeometry.cpp \
+    history.cpp \
     main.cpp \
     mainwindow.cpp \
     openglwidget.cpp \
-    rubikscube.cpp
+    rubikscube.cpp \
+    solcubdialog.cpp
 
 HEADERS += \
     cubegeometry.h \
+    history.h \
     mainwindow.h \
     openglwidget.h \
-    rubikscube.h
+    rubikscube.h \
+    solcubdialog.h
 
 FORMS += \
-    mainwindow.ui
+    history.ui \
+    mainwindow.ui \
+    solcubdialog.ui
 
 win32: LIBS += -lopengl32
 

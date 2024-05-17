@@ -25,6 +25,7 @@ void OpenGLWidget::initializeGL()
     initializeOpenGLFunctions();
     rubiksCube->setElementsOfCube();
     glClearColor(0.7f, 1.0f, 0.7f, 1.0f);
+    // glClearColor(0.9529f, 0.9529f, 0.9529f, 1.0f);
 }
 
 void OpenGLWidget::resizeGL(int w, int h)
@@ -101,13 +102,6 @@ void OpenGLWidget::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void OpenGLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::RightButton) {
-        rightButtonPressed = false;
-    }
-}
-
 void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (rightButtonPressed) {
@@ -148,7 +142,6 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
                     rotationAxis = QVector3D(0.0f, 0.0f, 1.0f);
                     yoffset = -yoffset;
                 }
-                // angle = yoffset > 0 ? -90.0f : 90.0f;
                 if (yoffset > 0) {
                     angle = -90.0f;
                     clockwise = true;
@@ -182,6 +175,8 @@ void OpenGLWidget::updateRotationSideAxises(QVector3D rotationAroundAxis, bool c
         } else {
             rotationFrontBackSideAxis = -rotationFrontBackSideAxis;
         }
+        rubiksCube->changeRotationAxis(rotationUpDownSideAxis, 0);
+        rubiksCube->changeRotationAxis(rotationFrontBackSideAxis, 1);
 
     } else if (rotationAroundAxis.y() != 0.0f) {
         tempRotationAxis = rotationFrontBackSideAxis;
@@ -193,6 +188,8 @@ void OpenGLWidget::updateRotationSideAxises(QVector3D rotationAroundAxis, bool c
         } else {
             rotationLeftRightSideAxis = -rotationLeftRightSideAxis;
         }
+        rubiksCube->changeRotationAxis(rotationFrontBackSideAxis, 1);
+        rubiksCube->changeRotationAxis(rotationLeftRightSideAxis, 2);
 
     } else {
         tempRotationAxis = rotationUpDownSideAxis;
@@ -204,7 +201,14 @@ void OpenGLWidget::updateRotationSideAxises(QVector3D rotationAroundAxis, bool c
         } else {
             rotationUpDownSideAxis = -rotationUpDownSideAxis;
         }
+        rubiksCube->changeRotationAxis(rotationUpDownSideAxis, 0);
+        rubiksCube->changeRotationAxis(rotationLeftRightSideAxis, 2);
     }
+}
+
+void OpenGLWidget::updateScramble()
+{
+    rubiksCube->scramble();
 }
 
 
@@ -216,94 +220,112 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
     QVector<CubeGeometry *> cubesOnSide;
     switch (event->key()) {
         case Qt::Key_W:
+            if (!firstMoveFlag) {
+                emit firstMove();
+                firstMoveFlag = true;
+            }
+
             if (event->modifiers() & Qt::ShiftModifier) {
                 rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, 90.0f);
                 clockwise = false;
+                rubiksCube->addToSolution("U' ");
             } else {
                 rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, -90.0f);
                 clockwise = true;
+                rubiksCube->addToSolution("U ");
             }
 
-            cubesOnSide = rubiksCube->getCubesOnSide('U');
-            for (auto &cube : cubesOnSide) {
-                cube->rotateCube(rotation);
-            }
-            rubiksCube->updateCubesAfterRotation('U', clockwise);
+            rubiksCube->rotateSide(rotation, 'U', clockwise);
             break;
         case Qt::Key_S:
+            if (!firstMoveFlag) {
+                emit firstMove();
+                firstMoveFlag = true;
+            }
+
             if (event->modifiers() & Qt::ShiftModifier) {
                 rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, -90.0f);
                 clockwise = false;
+                rubiksCube->addToSolution("D' ");
             } else {
                 rotation = QQuaternion::fromAxisAndAngle(rotationUpDownSideAxis, 90.0f);
                 clockwise = true;
+                rubiksCube->addToSolution("D ");
             }
 
-            cubesOnSide = rubiksCube->getCubesOnSide('D');
-            for (auto &cube : cubesOnSide) {
-                cube->rotateCube(rotation);
-            }
-            rubiksCube->updateCubesAfterRotation('D', clockwise);
+            rubiksCube->rotateSide(rotation, 'D', clockwise);
             break;
         case Qt::Key_A:
+            if (!firstMoveFlag) {
+                emit firstMove();
+                firstMoveFlag = true;
+            }
+
             if (event->modifiers() & Qt::ShiftModifier) {
                 rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, -90.0f);
                 clockwise = false;
+                rubiksCube->addToSolution("L' ");
             } else {
                 rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, 90.0f);
                 clockwise = true;
+                rubiksCube->addToSolution("L ");
             }
 
-            cubesOnSide = rubiksCube->getCubesOnSide('L');
-            for (auto &cube : cubesOnSide) {
-                cube->rotateCube(rotation);
-            }
-            rubiksCube->updateCubesAfterRotation('L', clockwise);
+            rubiksCube->rotateSide(rotation, 'L', clockwise);
             break;
         case Qt::Key_D:
+            if (!firstMoveFlag) {
+                emit firstMove();
+                firstMoveFlag = true;
+            }
+
             if (event->modifiers() & Qt::ShiftModifier) {
                 rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, 90.0f);
                 clockwise = false;
+                rubiksCube->addToSolution("R' ");
             } else {
                 rotation = QQuaternion::fromAxisAndAngle(rotationLeftRightSideAxis, -90.0f);
                 clockwise = true;
+                rubiksCube->addToSolution("R ");
             }
 
-            cubesOnSide = rubiksCube->getCubesOnSide('R');
-            for (auto &cube : cubesOnSide) {
-                cube->rotateCube(rotation);
-            }
-            rubiksCube->updateCubesAfterRotation('R', clockwise);
+            rubiksCube->rotateSide(rotation, 'R', clockwise);
             break;
         case Qt::Key_E:
+            if (!firstMoveFlag) {
+                emit firstMove();
+                firstMoveFlag = true;
+            }
+
             if (event->modifiers() & Qt::ShiftModifier) {
                 rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, 90.0f);
                 clockwise = false;
+                rubiksCube->addToSolution("F' ");
             } else {
                 rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, -90.0f);
                 clockwise = true;
+                rubiksCube->addToSolution("F ");
             }
 
-            cubesOnSide = rubiksCube->getCubesOnSide('F');
-            for (auto &cube : cubesOnSide) {
-                cube->rotateCube(rotation);
-            }
-            rubiksCube->updateCubesAfterRotation('F', clockwise);
+            rubiksCube->rotateSide(rotation, 'F', clockwise);
             break;
         case Qt::Key_Q:
+            if (!firstMoveFlag) {
+                emit firstMove();
+                firstMoveFlag = true;
+            }
+
             if (event->modifiers() & Qt::ShiftModifier) {
                 rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, -90.0f);
                 clockwise = false;
+                rubiksCube->addToSolution("B' ");
             } else {
                 rotation = QQuaternion::fromAxisAndAngle(rotationFrontBackSideAxis, 90.0f);
                 clockwise = true;
+                rubiksCube->addToSolution("B ");
             }
 
-            cubesOnSide = rubiksCube->getCubesOnSide('B');
-            for (auto &cube : cubesOnSide) {
-                cube->rotateCube(rotation);
-            }
-            rubiksCube->updateCubesAfterRotation('B', clockwise);
+            rubiksCube->rotateSide(rotation, 'B', clockwise);
             break;
     }
 }
