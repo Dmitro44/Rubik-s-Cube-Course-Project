@@ -5,6 +5,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
+#include <QQuaternion>
 
 class CubeGeometry : protected QOpenGLFunctions
 {

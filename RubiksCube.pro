@@ -9,37 +9,26 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    cubegeometry.cpp \
-    history.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    openglwidget.cpp \
-    rubikscube.cpp \
-    solcubdialog.cpp
+    src/cubegeometry.cpp \
+    src/history.cpp \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/openglwidget.cpp \
+    src/rubikscube.cpp \
+    src/solcubdialog.cpp
 
 HEADERS += \
-    cubegeometry.h \
-    history.h \
-    mainwindow.h \
-    openglwidget.h \
-    rubikscube.h \
-    solcubdialog.h
+    src/cubegeometry.h \
+    src/history.h \
+    src/mainwindow.h \
+    src/openglwidget.h \
+    src/rubikscube.h \
+    src/solcubdialog.h
 
 FORMS += \
-    history.ui \
-    mainwindow.ui \
-    solcubdialog.ui
-
-win32: LIBS += -lopengl32
-
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
-
-DISTFILES += \
-    fragmentShader.frag \
-    vertexShader.vert
+    forms/history.ui \
+    forms/mainwindow.ui \
+    forms/solcubdialog.ui
 
 RESOURCES += \
     shaders.qrc

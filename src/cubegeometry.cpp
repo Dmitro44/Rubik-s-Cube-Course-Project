@@ -29,8 +29,8 @@ CubeGeometry::~CubeGeometry()
 void CubeGeometry::initShader()
 {
     program = new QOpenGLShaderProgram();
-    program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/Shaders/vertexShader.vert");
-    program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/Shaders/fragmentShader.frag");
+    program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/Shaders/shaders/vertexShader.vert");
+    program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/Shaders/shaders/fragmentShader.frag");
     program->link();
     if (program->isLinked())
     {
